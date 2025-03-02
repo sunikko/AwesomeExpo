@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import WebView from "react-native-webview";
-import { styles } from "./browserstyles";
+import { styles } from "../styles/browserstyles";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const NavButton = ({
