@@ -1,41 +1,39 @@
-import { useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
 import {
   Animated,
-  Platform,
   SafeAreaView,
-  StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import WebView from "react-native-webview";
+import { styles } from "./browserstyles";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-const styles = StyleSheet.create({
-  safearea: {
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    flex: 1,
-    backgroundColor: "black",
-  },
-  urlContainer: {
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 5,
-  },
-  urlText: {
-    color: "white",
-  },
-  loadingBarBackground: {
-    height: 3,
-    backgroundColor: "white",
-  },
-  loadingBar: {
-    height: "100%",
-    backgroundColor: "green",
-  },
-});
+const NavButton = ({
+  iconName,
+  disabled,
+  onPress,
+}: {
+  iconName: keyof typeof MaterialCommunityIcons.glyphMap;
+  disabled: boolean;
+  onPress: () => void;
+}) => {
+  const color = disabled ? "gray" : "white";
+  return (
+    <TouchableOpacity
+      style={styles.button}
+      disabled={disabled}
+      onPress={onPress}
+    >
+      <MaterialCommunityIcons name={iconName} color={color} size={24} />
+    </TouchableOpacity>
+  );
+};
 
 const BrowserScreen = () => {
+  const router = useRouter();
   const params = useLocalSearchParams();
   const initialUrl = params.initialUrl as string;
   const [url, setUrl] = useState(initialUrl);
@@ -44,6 +42,10 @@ const BrowserScreen = () => {
     [url],
   );
   const progressAnim = useRef(new Animated.Value(0)).current;
+
+  const webViewRef = useRef<WebView | null>(null);
+  const [canGoBack, setCanGoBack] = useState(false);
+  const [canGoForward, setCanGoForward] = useState(false);
 
   return (
     <SafeAreaView style={styles.safearea}>
@@ -64,9 +66,12 @@ const BrowserScreen = () => {
         />
       </View>
       <WebView
+        ref={webViewRef}
         source={{ uri: initialUrl }}
         onNavigationStateChange={(event) => {
           setUrl(event.url);
+          setCanGoBack(event.canGoBack);
+          setCanGoForward(event.canGoForward);
         }}
         onLoadProgress={(event) => {
           progressAnim.setValue(event.nativeEvent.progress);
@@ -75,6 +80,39 @@ const BrowserScreen = () => {
           progressAnim.setValue(0);
         }}
       ></WebView>
+      <View style={styles.navigator}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <View style={styles.naverIconOutline}>
+            <Text style={styles.naverIconText}>N</Text>
+          </View>
+        </TouchableOpacity>
+        <NavButton
+          iconName="arrow-left"
+          disabled={!canGoBack}
+          onPress={() => {
+            webViewRef.current?.goBack();
+          }}
+        />
+        <NavButton
+          iconName="arrow-right"
+          disabled={!canGoForward}
+          onPress={() => {
+            webViewRef.current?.goForward();
+          }}
+        />
+        <NavButton
+          iconName="refresh"
+          disabled={false}
+          onPress={() => {
+            webViewRef.current?.reload();
+          }}
+        />
+      </View>
     </SafeAreaView>
   );
 };
