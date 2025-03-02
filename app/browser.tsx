@@ -3,6 +3,7 @@ import React, { useMemo, useRef, useState } from "react";
 import {
   Animated,
   SafeAreaView,
+  Share,
   Text,
   TouchableOpacity,
   View,
@@ -17,8 +18,8 @@ const NavButton = ({
   onPress,
 }: {
   iconName: keyof typeof MaterialCommunityIcons.glyphMap;
-  disabled: boolean;
-  onPress: () => void;
+  disabled?: boolean;
+  onPress?: () => void;
 }) => {
   const color = disabled ? "gray" : "white";
   return (
@@ -107,9 +108,14 @@ const BrowserScreen = () => {
         />
         <NavButton
           iconName="refresh"
-          disabled={false}
           onPress={() => {
             webViewRef.current?.reload();
+          }}
+        />
+        <NavButton
+          iconName="share-outline"
+          onPress={() => {
+            Share.share({ message: url });
           }}
         />
       </View>
